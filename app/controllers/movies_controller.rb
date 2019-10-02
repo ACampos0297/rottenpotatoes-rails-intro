@@ -11,8 +11,14 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @all_ratings = Movie.all_ratings
+    #get only movies with ratings that are checkmarked 
+    @ratings = params[:ratings] || Hash[ @all_ratings.map {|ratings| [ratings, 1]} ]
+    #if category is clicked see how we should sort
     @category = params[:category] || @category
-    @movies = Movie.order(@category)
+    #query only ratings checkboxed and order based on category chosen
+    @movies = Movie.where("rating in (?)", @ratings.keys).order(@category)
+    #@movies = Movie.order(@category)
   end
 
   def new
