@@ -12,10 +12,38 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.all_ratings
-    #get only movies with ratings that are checkmarked 
-    @ratings = params[:ratings] || Hash[ @all_ratings.map {|ratings| [ratings, 1]} ]
-    #if category is clicked see how we should sort
-    @category = params[:category] || @category
+    @category = nil
+    @ratings = nil
+    
+    newPage = false
+    #we have parameters for category already present
+    if params[:category]
+    	@category = params[:category]
+    	session[:category] = @category
+    #no parameters present check if anything in session to carry over
+    elsif session[:category]
+    	@category = session[:category]
+    	newPage = true
+    else
+	    @category = params[:category] || @category
+    end
+    
+    #same process as above but for ratings
+    if params[:ratings]
+    	@ratings = params[:ratings]
+    	session[:ratings] = @ratings
+	elsif session[:ratings]
+		@ratings = session[:ratings]
+		newPage = true
+	else    
+	    @ratings = params[:ratings] || Hash[ @all_ratings.map {|ratings| [ratings, 1]} ]
+    end
+
+	if newPage
+		flash.keep
+		redirect_to movies_path({:ratings=>@ratings, :category => @category})
+	end
+	
     #query only ratings checkboxed and order based on category chosen
     @movies = Movie.where("rating in (?)", @ratings.keys).order(@category)
     #@movies = Movie.order(@category)
